@@ -88,7 +88,7 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        .start-btn {
+        .start-btn, .difficulty-btn {
             background-color: #0056b3;
             color: white;
             border: 2px solid #FFCF40;
@@ -99,14 +99,19 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin: 10px;
         }
 
-        .start-btn:hover {
-            background-color: #004090;
+        .start-btn:hover, .difficulty-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
             animation: shine 0.5s ease;
         }
+        
+        /* Warna khusus untuk tombol kesulitan */
+        .difficulty-btn.mudah { background-color: #4CAF50; border-color: #a5d6a7; }
+        .difficulty-btn.sedang { background-color: #FF9800; border-color: #ffcc02; }
+        .difficulty-btn.sulit { background-color: #f44336; border-color: #ef9a9a; }
 
         @keyframes shine {
             0% { box-shadow: 0 0 10px rgba(255, 207, 64, 0.5); }
@@ -121,6 +126,35 @@
             color: #333;
         }
 
+        /* Halaman Pilih Kesulitan */
+        #difficultyPage {
+            background: linear-gradient(to bottom, #3BAAFF, #a8e6cf);
+        }
+
+        #difficultyPage .container {
+            text-align: center;
+            z-index: 1;
+        }
+
+        .difficulty-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #003d7a;
+            margin-bottom: 2rem;
+        }
+
+        .difficulty-subtitle {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 3rem;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
         /* Halaman Permainan */
         #gamePage {
             background: linear-gradient(to bottom, #3BAAFF, #a8e6cf);
@@ -133,6 +167,12 @@
             color: #003d7a;
             margin-bottom: 30px;
             text-align: center;
+        }
+        
+        .game-title .difficulty-indicator {
+            font-size: 1.2rem;
+            color: #555;
+            font-weight: 400;
         }
 
         .game-container {
@@ -417,10 +457,24 @@
         </div>
     </div>
 
+    <!-- Halaman Pilih Kesulitan -->
+    <div id="difficultyPage" class="page">
+        <div class="watermark">SKARTESA JAYA</div>
+        <div class="container">
+            <h1 class="difficulty-title">Pilih Tingkat Kesulitan</h1>
+            <p class="difficulty-subtitle">Pilih tingkat yang sesuai untukmu!</p>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn mudah" data-level="mudah">🟢 Mudah</button>
+                <button class="difficulty-btn sedang" data-level="sedang">🟡 Sedang</button>
+                <button class="difficulty-btn sulit" data-level="sulit">🔴 Sulit</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Halaman Permainan -->
     <div id="gamePage" class="page">
         <div class="watermark">SKARTESA JAYA</div>
-        <h1 class="game-title">Balap Kelereng Matematika</h1>
+        <h1 class="game-title">Balap Kelereng Matematika <br><span class="difficulty-indicator" id="difficultyIndicator"></span></h1>
         
         <div class="game-container">
             <!-- Pemain 1 (Kiri) -->
@@ -520,21 +574,40 @@
         let player1CorrectAnswer = 0;
         let player2CorrectAnswer = 0;
         let gameActive = false;
+        let currentDifficulty = ''; // Variabel baru untuk menyimpan tingkat kesulitan
 
         // DOM Elements
         const homePage = document.getElementById('homePage');
+        const difficultyPage = document.getElementById('difficultyPage');
         const gamePage = document.getElementById('gamePage');
         const resultPopup = document.getElementById('resultPopup');
         const startBtn = document.getElementById('startBtn');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
         const playAgainBtn = document.getElementById('playAgainBtn');
         const backToMenuBtn = document.getElementById('backToMenuBtn');
         const winnerText = document.getElementById('winnerText');
         const confetti = document.getElementById('confetti');
+        const difficultyIndicator = document.getElementById('difficultyIndicator');
 
         // Event Listeners
-        startBtn.addEventListener('click', startGame);
+        startBtn.addEventListener('click', showDifficultyPage);
+        
+        // Event listener untuk setiap tombol kesulitan
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentDifficulty = this.getAttribute('data-level');
+                startGame(); // Mulai game setelah tingkat kesulitan dipilih
+            });
+        });
+
         playAgainBtn.addEventListener('click', resetGame);
         backToMenuBtn.addEventListener('click', backToMenu);
+
+        // Fungsi untuk menampilkan halaman pemilihan kesulitan
+        function showDifficultyPage() {
+            homePage.classList.remove('active');
+            difficultyPage.classList.add('active');
+        }
 
         // Number pad buttons
         document.querySelectorAll('.num-btn').forEach(btn => {
@@ -582,31 +655,70 @@
 
         // Fungsi untuk memulai game
         function startGame() {
-            homePage.classList.remove('active');
+            difficultyPage.classList.remove('active');
             gamePage.classList.add('active');
             gameActive = true;
+
+            // Tampilkan tingkat kesulitan yang dipilih di judul game
+            let displayText = '';
+            if (currentDifficulty === 'mudah') displayText = 'Tingkat: Mudah';
+            if (currentDifficulty === 'sedang') displayText = 'Tingkat: Sedang';
+            if (currentDifficulty === 'sulit') displayText = 'Tingkat: Sulit';
+            difficultyIndicator.textContent = displayText;
             
             generateQuestion(1);
             generateQuestion(2);
         }
 
-        // Fungsi untuk menghasilkan soal acak
+        // Fungsi untuk menghasilkan soal acak BERDASARKAN KESULITAN
         function generateQuestion(player) {
-            const questionType = Math.floor(Math.random() * 2);
             let num1, num2, num3, question, answer;
             
-            if (questionType === 0) {
+            if (currentDifficulty === 'mudah') {
+                // Soal Mudah: Penjumlahan atau Pengurangan angka kecil
+                const operation = Math.random() > 0.5 ? '+' : '-';
+                num1 = Math.floor(Math.random() * 10) + 1;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                
+                if (operation === '+') {
+                    question = `${num1} + ${num2} = ?`;
+                    answer = num1 + num2;
+                } else {
+                    // Pastikan hasil tidak negatif
+                    if (num1 < num2) [num1, num2] = [num2, num1];
+                    question = `${num1} - ${num2} = ?`;
+                    answer = num1 - num2;
+                }
+            } else if (currentDifficulty === 'sedang') {
+                // Soal Sedang: Perkalian + Penjumlahan/Pengurangan (versi lama)
+                const operation = Math.random() > 0.5 ? '+' : '-';
                 num1 = Math.floor(Math.random() * 10) + 1;
                 num2 = Math.floor(Math.random() * 10) + 1;
                 num3 = Math.floor(Math.random() * 10) + 1;
-                question = `${num1} × ${num2} + ${num3} = ?`;
-                answer = (num1 * num2) + num3;
-            } else {
-                num1 = Math.floor(Math.random() * 10) + 1;
-                num2 = Math.floor(Math.random() * 10) + 1;
-                num3 = Math.floor(Math.random() * (num1 * num2)) + 1;
-                question = `${num1} × ${num2} - ${num3} = ?`;
-                answer = (num1 * num2) - num3;
+                
+                if (operation === '+') {
+                    question = `${num1} × ${num2} + ${num3} = ?`;
+                    answer = (num1 * num2) + num3;
+                } else {
+                    num3 = Math.floor(Math.random() * (num1 * num2)) + 1;
+                    question = `${num1} × ${num2} - ${num3} = ?`;
+                    answer = (num1 * num2) - num3;
+                }
+            } else { // sulit
+                // Soal Sulit: Perkalian angka besar + Penjumlahan/Pengurangan
+                const operation = Math.random() > 0.5 ? '+' : '-';
+                num1 = Math.floor(Math.random() * 6) + 10; // Angka 10-15
+                num2 = Math.floor(Math.random() * 6) + 10; // Angka 10-15
+                num3 = Math.floor(Math.random() * 50) + 20; // Angka 20-69
+                
+                if (operation === '+') {
+                    question = `${num1} × ${num2} + ${num3} = ?`;
+                    answer = (num1 * num2) + num3;
+                } else {
+                    num3 = Math.floor(Math.random() * (num1 * num2 - 10)) + 10;
+                    question = `${num1} × ${num2} - ${num3} = ?`;
+                    answer = (num1 * num2) - num3;
+                }
             }
             
             if (player === 1) {
@@ -716,6 +828,7 @@
             
             resultPopup.classList.remove('active');
             
+            // Main lagi dengan tingkat kesulitan yang SAMA
             generateQuestion(1);
             generateQuestion(2);
             
@@ -728,6 +841,7 @@
             resultPopup.classList.remove('active');
             gamePage.classList.remove('active');
             homePage.classList.add('active');
+            currentDifficulty = ''; // Reset tingkat kesulitan
         }
 
         // Inisialisasi game
