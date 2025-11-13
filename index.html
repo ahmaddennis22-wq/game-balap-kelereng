@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balap Kelereng Matematika - SDN 1 Karangtengah</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Gaya Umum */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Halaman */
+        .page {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .page.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12rem;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.05);
+            z-index: -1;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Halaman Awal */
+        #homePage {
+            background: linear-gradient(to bottom, #3BAAFF, #FFF6E0);
+        }
+
+        #homePage .container {
+            text-align: center;
+            z-index: 1;
+        }
+
+        .school-name {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
+            to { text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 255, 255, 0.7); }
+        }
+
+        .welcome-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #FFCF40;
+            margin-bottom: 3rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .start-btn {
+            background-color: #0056b3;
+            color: white;
+            border: 2px solid #FFCF40;
+            border-radius: 50px;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .start-btn:hover {
+            background-color: #004090;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            animation: shine 0.5s ease;
+        }
+
+        @keyframes shine {
+            0% { box-shadow: 0 0 10px rgba(255, 207, 64, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 207, 64, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(255, 207, 64, 0.5); }
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        /* Halaman Permainan */
+        #gamePage {
+            background: linear-gradient(to bottom, #3BAAFF, #a8e6cf);
+            padding: 20px;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #003d7a;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1200px;
+            height: calc(100vh - 150px);
+        }
+
+        /* Area Pemain - LAYOUT BARU */
+        .player-area {
+            width: 48%;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex; /* Menggunakan Flexbox untuk layout */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            gap: 20px; /* Jarak antar kolom */
+        }
+
+        .player1 { background-color: rgba(59, 170, 255, 0.2); }
+        .player2 { background-color: rgba(255, 100, 100, 0.2); }
+
+        /* Kolom Kiri untuk Numpad */
+        .numpad-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Kolom Tengah/Kanan untuk Track dan Info */
+        .track-column {
+            flex: 1; /* Mengisi sisa ruang */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .question-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .question {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .answer-input {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0056b3;
+            padding: 5px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin-top: 10px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Number Pad - Lebih Kecil */
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .num-btn, .clear-btn, .go-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .num-btn { background-color: white; color: #333; }
+        .num-btn:hover { background-color: #f0f0f0; transform: translateY(-2px); }
+
+        .clear-btn { background-color: #ff6464; color: white; }
+        .clear-btn:hover { background-color: #ff4444; transform: translateY(-2px); }
+
+        .go-btn { background-color: #4CAF50; color: white; }
+        .go-btn:hover { background-color: #45a049; transform: translateY(-2px); }
+
+        .score {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            background-color: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Balap Kelereng - TEMA BARU */
+        .race-track-container {
+            flex-grow: 1; /* Memenuhi ruang yang tersedia */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 0 10px;
+        }
+
+        .race-track {
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(to right, #d4a373, #bc9a6a);
+            border-radius: 30px;
+            position: relative;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden; /* Agar kelereng tidak keluar trek */
+        }
+
+        /* Garis Start dan Finish */
+        .race-track::before, .race-track::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 5px;
+            height: 100%;
+        }
+        .race-track::before { /* Start */
+            left: 10px;
+            background-color: #333;
+        }
+        .race-track::after { /* Finish */
+            right: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 5px #333;
+        }
+
+        .marble {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            left: 15px; /* Posisi awal */
+            transition: left 0.5s ease-in-out;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.4);
+        }
+
+        /* Desain Kelereng Pemain 1 (Biru) */
+        #marble1 {
+            background: radial-gradient(circle at 30% 30%, #6dd5ed, #2193b0);
+        }
+        /* Desain Kelereng Pemain 2 (Merah) */
+        #marble2 {
+            background: radial-gradient(circle at 30% 30%, #ff9a9e, #c7254e);
+        }
+
+        /* Popup */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .popup.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-content {
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        #winnerText {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .popup-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .popup-btn {
+            background-color: #3BAAFF;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .popup-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-3px);
+        }
+
+        /* Confetti */
+        #confetti {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0.8;
+        }
+
+        /* Responsif */
+        @media (max-width: 768px) {
+            .game-container { flex-direction: column; height: auto; gap: 20px;}
+            .player-area { width: 100%; flex-direction: column; }
+            .numpad-column { order: 2; }
+            .track-column { order: 1; }
+            .school-name { font-size: 2rem; }
+            .welcome-text { font-size: 1.4rem; }
+            .game-title { font-size: 2rem; }
+        }
+
+        /* Animasi Tambahan */
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Halaman Awal -->
+    <div id="homePage" class="page active">
+        <div class="watermark">SKARTESA JAYA</div>
+        <div class="container">
+            <h1 class="school-name">SDN 1 KARANGTENGAH KOTA BLITAR</h1>
+            <h2 class="welcome-text">Selamat Datang di Dunia Game Edukasi<br>Balap Kelereng Matematika 2025 🎯</h2>
+            <button id="startBtn" class="start-btn">🎮 MULAI BERMAIN</button>
+            <p class="footer">Powered by SKARTESA JAYA ✨</p>
+        </div>
+    </div>
+
+    <!-- Halaman Permainan -->
+    <div id="gamePage" class="page">
+        <div class="watermark">SKARTESA JAYA</div>
+        <h1 class="game-title">Balap Kelereng Matematika</h1>
+        
+        <div class="game-container">
+            <!-- Pemain 1 (Kiri) -->
+            <div class="player-area player1">
+                <!-- Kolom Kiri: Number Pad -->
+                <div class="numpad-column">
+                    <div class="number-pad">
+                        <button class="num-btn" data-player="1" data-value="7">7</button>
+                        <button class="num-btn" data-player="1" data-value="8">8</button>
+                        <button class="num-btn" data-player="1" data-value="9">9</button>
+                        <button class="num-btn" data-player="1" data-value="4">4</button>
+                        <button class="num-btn" data-player="1" data-value="5">5</button>
+                        <button class="num-btn" data-player="1" data-value="6">6</button>
+                        <button class="num-btn" data-player="1" data-value="1">1</button>
+                        <button class="num-btn" data-player="1" data-value="2">2</button>
+                        <button class="num-btn" data-player="1" data-value="3">3</button>
+                        <button class="clear-btn" data-player="1">C</button>
+                        <button class="num-btn" data-player="1" data-value="0">0</button>
+                        <button class="go-btn" data-player="1">Go</button>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Track dan Info -->
+                <div class="track-column">
+                    <div class="question-card">
+                        <div class="question" id="question1">7 × 3 + 2 = ?</div>
+                        <div class="answer-input" id="answer1">0</div>
+                    </div>
+                    
+                    <div class="race-track-container">
+                        <div class="race-track">
+                            <div class="marble" id="marble1"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="score">Benar: <span id="score1">0</span>/10</div>
+                </div>
+            </div>
+            
+            <!-- Pemain 2 (Kanan) -->
+            <div class="player-area player2">
+                <!-- Kolom Kiri: Track dan Info -->
+                <div class="track-column">
+                    <div class="question-card">
+                        <div class="question" id="question2">9 × 3 - 7 = ?</div>
+                        <div class="answer-input" id="answer2">0</div>
+                    </div>
+                    
+                    <div class="race-track-container">
+                        <div class="race-track">
+                            <div class="marble" id="marble2"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="score">Benar: <span id="score2">0</span>/10</div>
+                </div>
+
+                <!-- Kolom Kanan: Number Pad -->
+                <div class="numpad-column">
+                    <div class="number-pad">
+                        <button class="num-btn" data-player="2" data-value="7">7</button>
+                        <button class="num-btn" data-player="2" data-value="8">8</button>
+                        <button class="num-btn" data-player="2" data-value="9">9</button>
+                        <button class="num-btn" data-player="2" data-value="4">4</button>
+                        <button class="num-btn" data-player="2" data-value="5">5</button>
+                        <button class="num-btn" data-player="2" data-value="6">6</button>
+                        <button class="num-btn" data-player="2" data-value="1">1</button>
+                        <button class="num-btn" data-player="2" data-value="2">2</button>
+                        <button class="num-btn" data-player="2" data-value="3">3</button>
+                        <button class="clear-btn" data-player="2">C</button>
+                        <button class="num-btn" data-player="2" data-value="0">0</button>
+                        <button class="go-btn" data-player="2">Go</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup Hasil -->
+    <div id="resultPopup" class="popup">
+        <div class="popup-content">
+            <h2 id="winnerText">🎉 Pemenangnya adalah Pemain 1! 🎉</h2>
+            <div id="confetti"></div>
+            <div class="popup-buttons">
+                <button id="playAgainBtn" class="popup-btn">Main Lagi</button>
+                <button id="backToMenuBtn" class="popup-btn">Kembali ke Menu Utama</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variabel Global
+        let player1Score = 0;
+        let player2Score = 0;
+        let player1Answer = "";
+        let player2Answer = "";
+        let player1CorrectAnswer = 0;
+        let player2CorrectAnswer = 0;
+        let gameActive = false;
+
+        // DOM Elements
+        const homePage = document.getElementById('homePage');
+        const gamePage = document.getElementById('gamePage');
+        const resultPopup = document.getElementById('resultPopup');
+        const startBtn = document.getElementById('startBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        const winnerText = document.getElementById('winnerText');
+        const confetti = document.getElementById('confetti');
+
+        // Event Listeners
+        startBtn.addEventListener('click', startGame);
+        playAgainBtn.addEventListener('click', resetGame);
+        backToMenuBtn.addEventListener('click', backToMenu);
+
+        // Number pad buttons
+        document.querySelectorAll('.num-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const player = this.getAttribute('data-player');
+                const value = this.getAttribute('data-value');
+                
+                if (player === '1') {
+                    player1Answer += value;
+                    document.getElementById('answer1').textContent = player1Answer;
+                } else {
+                    player2Answer += value;
+                    document.getElementById('answer2').textContent = player2Answer;
+                }
+            });
+        });
+
+        // Clear buttons
+        document.querySelectorAll('.clear-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const player = this.getAttribute('data-player');
+                
+                if (player === '1') {
+                    player1Answer = "";
+                    document.getElementById('answer1').textContent = "0";
+                } else {
+                    player2Answer = "";
+                    document.getElementById('answer2').textContent = "0";
+                }
+            });
+        });
+
+        // Go buttons
+        document.querySelectorAll('.go-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const player = this.getAttribute('data-player');
+                
+                if (player === '1') {
+                    checkAnswer(1);
+                } else {
+                    checkAnswer(2);
+                }
+            });
+        });
+
+        // Fungsi untuk memulai game
+        function startGame() {
+            homePage.classList.remove('active');
+            gamePage.classList.add('active');
+            gameActive = true;
+            
+            generateQuestion(1);
+            generateQuestion(2);
+        }
+
+        // Fungsi untuk menghasilkan soal acak
+        function generateQuestion(player) {
+            const questionType = Math.floor(Math.random() * 2);
+            let num1, num2, num3, question, answer;
+            
+            if (questionType === 0) {
+                num1 = Math.floor(Math.random() * 10) + 1;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                num3 = Math.floor(Math.random() * 10) + 1;
+                question = `${num1} × ${num2} + ${num3} = ?`;
+                answer = (num1 * num2) + num3;
+            } else {
+                num1 = Math.floor(Math.random() * 10) + 1;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                num3 = Math.floor(Math.random() * (num1 * num2)) + 1;
+                question = `${num1} × ${num2} - ${num3} = ?`;
+                answer = (num1 * num2) - num3;
+            }
+            
+            if (player === 1) {
+                document.getElementById('question1').textContent = question;
+                player1CorrectAnswer = answer;
+            } else {
+                document.getElementById('question2').textContent = question;
+                player2CorrectAnswer = answer;
+            }
+        }
+
+        // Fungsi untuk memeriksa jawaban
+        function checkAnswer(player) {
+            let answer, scoreElement, marbleElement;
+            
+            if (player === 1) {
+                answer = parseInt(player1Answer);
+                scoreElement = document.getElementById('score1');
+                marbleElement = document.getElementById('marble1');
+            } else {
+                answer = parseInt(player2Answer);
+                scoreElement = document.getElementById('score2');
+                marbleElement = document.getElementById('marble2');
+            }
+            
+            const correctAnswer = player === 1 ? player1CorrectAnswer : player2CorrectAnswer;
+            
+            if (answer === correctAnswer) {
+                if (player === 1) {
+                    player1Score++;
+                    player1Answer = "";
+                    document.getElementById('answer1').textContent = "0";
+                } else {
+                    player2Score++;
+                    player2Answer = "";
+                    document.getElementById('answer2').textContent = "0";
+                }
+                
+                scoreElement.textContent = player === 1 ? player1Score : player2Score;
+                
+                // Animasi Kelereng Maju
+                const trackWidth = marbleElement.parentElement.offsetWidth;
+                const maxDistance = trackWidth - 65; // 65 = marble width (50) + start pos (15)
+                const step = maxDistance / 10;
+                const newLeft = step * (player === 1 ? player1Score : player2Score);
+                marbleElement.style.left = newLeft + 'px';
+                
+                if ((player === 1 && player1Score === 10) || (player === 2 && player2Score === 10)) {
+                    endGame(player);
+                } else {
+                    generateQuestion(player);
+                }
+            } else {
+                // Animasi Kelereng Shake
+                marbleElement.classList.add('shake');
+                setTimeout(() => {
+                    marbleElement.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        // Fungsi untuk mengakhiri game
+        function endGame(winner) {
+            gameActive = false;
+            winnerText.textContent = `🎉 Pemenangnya adalah Pemain ${winner}! 🎉`;
+            resultPopup.classList.add('active');
+            createConfetti();
+        }
+
+        // Fungsi untuk membuat efek confetti
+        function createConfetti() {
+            confetti.innerHTML = '';
+            
+            for (let i = 0; i < 100; i++) {
+                const confettiPiece = document.createElement('div');
+                confettiPiece.classList.add('confetti-piece');
+                confettiPiece.style.backgroundColor = Math.random() > 0.5 ? '#FF0000' : '#FFFFFF';
+                confettiPiece.style.left = Math.random() * 100 + '%';
+                confettiPiece.style.top = -10 + 'px';
+                
+                const size = Math.random() * 10 + 5;
+                confettiPiece.style.width = size + 'px';
+                confettiPiece.style.height = size + 'px';
+                
+                const duration = Math.random() * 3 + 2;
+                confettiPiece.style.animation = `fall ${duration}s linear forwards`;
+                
+                confetti.appendChild(confettiPiece);
+            }
+        }
+
+        // Fungsi untuk mereset game
+        function resetGame() {
+            player1Score = 0;
+            player2Score = 0;
+            player1Answer = "";
+            player2Answer = "";
+            
+            document.getElementById('score1').textContent = '0';
+            document.getElementById('score2').textContent = '0';
+            document.getElementById('answer1').textContent = '0';
+            document.getElementById('answer2').textContent = '0';
+            
+            // Reset posisi kelereng ke start
+            document.getElementById('marble1').style.left = '15px';
+            document.getElementById('marble2').style.left = '15px';
+            
+            resultPopup.classList.remove('active');
+            
+            generateQuestion(1);
+            generateQuestion(2);
+            
+            gameActive = true;
+        }
+
+        // Fungsi untuk kembali ke menu utama
+        function backToMenu() {
+            resetGame();
+            resultPopup.classList.remove('active');
+            gamePage.classList.remove('active');
+            homePage.classList.add('active');
+        }
+
+        // Inisialisasi game
+        window.addEventListener('load', () => {
+            homePage.classList.add('active');
+        });
+    </script>
+</body>
+</html>
